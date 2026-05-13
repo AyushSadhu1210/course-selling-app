@@ -2,6 +2,8 @@ import express from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import { v2 as cloudinary } from "cloudinary";
+import path from "path";
+import { fileURLToPath } from "url";
 
 import courseRoute from "./routes/course.route.js";
 import userRoute from "./routes/user.route.js";
@@ -13,7 +15,14 @@ import fileUpload from "express-fileupload";
 import cookieParser from "cookie-parser";
 
 const app = express();
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, ".env") });
+
+const frontendOrigin =
+    (process.env.FRONTEND_URL || process.env.FRONTEFRONTND_URL || "http://localhost:5173")
+        .replace(/\/$/, "");
 
 //middleware
 app.use(express.json());
@@ -26,7 +35,7 @@ app.use(
 );
 app.use(
     cors({
-        origin: process.env.FRONTEND_URL,
+        origin: frontendOrigin,
         credentials: true,
         methods: ["GET", "POST", "PUT", "DELETE"],
         allowedHeaders: ["Content-Type", "Authorization"],
@@ -34,13 +43,21 @@ app.use(
 );
 
 const port = process.env.PORT || 3000;
-const DB_URI = process.env.MONGO_URI
+const DB_URI = process.env.MONGO_URI;
+
+if (!DB_URI) {
+    console.error("Missing MONGO_URI in backend/.env");
+    process.exit(1);
+}
 
 try {
-    await mongoose.connect(DB_URI);
+    await mongoose.connect(DB_URI, {
+        serverSelectionTimeoutMS: 5000,
+    });
     console.log("Connected to MongoDB");
 } catch (error) {
-    console.log(error);
+    console.error("Failed to connect to MongoDB", error);
+    process.exit(1);
 }
 
 // defining routes

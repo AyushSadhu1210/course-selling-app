@@ -133,8 +133,15 @@ export const courseDetails = async (req, res) => {
 
 import Stripe from "stripe";
 import config from "../config.js";
-const stripe = new Stripe(config.STRIPE_SECRET_KEY);
-console.log(config.STRIPE_SECRET_KEY);
+
+const getStripeClient = () => {
+    if (!config.STRIPE_SECRET_KEY) {
+        throw new Error("Missing STRIPE_SECRET_KEY in backend/.env");
+    }
+
+    return new Stripe(config.STRIPE_SECRET_KEY);
+};
+
 export const buyCourses = async (req, res) => {
     const { userId } = req;
     const { courseId } = req.params;
@@ -153,6 +160,7 @@ export const buyCourses = async (req, res) => {
 
         // stripe payment code goes here!!
         const amount = course.price;
+        const stripe = getStripeClient();
         const paymentIntent = await stripe.paymentIntents.create({
             amount: amount,
             currency: "usd",
