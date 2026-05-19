@@ -1,0 +1,53 @@
+name: Backend CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+
+jobs:
+  backend-ci:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    defaults:
+      run:
+        working-directory: ./backend
+
+    env:
+      NODE_ENV: test
+      JWT_SECRET: test-secret
+      MONGODB_URI: mongodb://localhost:27017/test
+      STRIPE_SECRET_KEY: test_key
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+
+      - name: Verify server starts
+        run: |
+          timeout 10s npm start || code=$?
+          if [ $code -ne 0 ] && [ $code -ne 124 ]; then
+            exit $code
+          fi

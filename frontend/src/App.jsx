@@ -15,7 +15,6 @@ import UpdateCourse from "./admin/UpdateCourse";
 import OurCourses from "./admin/OurCourses";
 
 function App() {
-  const user = JSON.parse(localStorage.getItem("user"));
   const admin = JSON.parse(localStorage.getItem("admin"));
   return (
     <div>
@@ -27,13 +26,7 @@ function App() {
         {/* Other Routes */}
         <Route path="/courses" element={<Courses />} />
         <Route path="/buy/:courseId" element={<Buy />} />
-        <Route path="/purchases" element={<Purchases />}
-        />
-        {/*         you can use below one if required 
- <Route
-          path="/purchases"
-          element={user ? <Purchases /> : <Navigate to={"/login"} />}
-        />*/}
+        <Route path="/purchases" element={<Purchases />} />
 
         {/* Admin Routes */}
         <Route path="/admin/signup" element={<AdminSignup />} />
