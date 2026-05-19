@@ -22,7 +22,7 @@ jobs:
     env:
       NODE_ENV: test
       JWT_SECRET: test-secret
-      MONGODB_URI: mongodb://localhost:27017/test
+      MONGO_URI: mongodb://localhost:27017/test
       STRIPE_SECRET_KEY: test_key
 
     steps:
