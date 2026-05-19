@@ -55,7 +55,7 @@ export const createCourse = async (req, res) => {
 export const updateCourse = async (req, res) => {
   const adminId = req.adminId;
   const { courseId } = req.params;
-  const { title, description, price, image } = req.body;
+  const { title, description, price } = req.body;
   try {
     const courseSearch = await Course.findById(courseId);
     if (!courseSearch) {
