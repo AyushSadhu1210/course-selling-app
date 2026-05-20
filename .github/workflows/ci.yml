@@ -21,9 +21,9 @@ jobs:
 
     env:
       NODE_ENV: test
-      JWT_SECRET: test-secret
-      MONGO_URI: mongodb+srv://user1:Wedo%40123@cluster0.jrqs4vk.mongodb.net/course-selling-app?retryWrites=true&w=majority&appName=Cluster0
-      STRIPE_SECRET_KEY: test_key
+      JWT_SECRET: ${{secrets.JWT_SECRET}}
+      MONGO_URI: ${{ secrets.MONGO_URI }}
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
 
     steps:
       - name: Checkout repository
