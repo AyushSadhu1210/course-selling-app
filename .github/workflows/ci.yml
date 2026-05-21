@@ -22,6 +22,8 @@ jobs:
     env:
       NODE_ENV: test
       JWT_SECRET: ${{secrets.JWT_SECRET}}
+      JWT_USER_PASSWORD: ${{secrets.JWT_USER_PASSWORD}}
+      JWT_ADMIN_PASSWORD: ${{secrets.JWT_ADMIN_PASSWORD}}
       MONGO_URI: ${{ secrets.MONGO_URI }}
       STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
 
