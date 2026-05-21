@@ -67,11 +67,36 @@ app.use("/api/v1/admin", adminRoute);
 app.use("/api/v1/order", orderRoute);
 
 // Cloudinary configuration code
-cloudinary.config({
+const cloudinaryConfig = {
     cloud_name: process.env.cloud_name,
     api_key: process.env.api_key,
     api_secret: process.env.api_secret,
-});
+};
+cloudinary.config(cloudinaryConfig);
+
+const cloudinaryPlaceholders = ["your_cloudinary_cloud_name", "your_cloudinary_api_key", "your_cloudinary_api_secret"];
+if (
+    cloudinaryPlaceholders.includes(cloudinaryConfig.cloud_name) ||
+    cloudinaryPlaceholders.includes(cloudinaryConfig.api_key) ||
+    cloudinaryPlaceholders.includes(cloudinaryConfig.api_secret)
+) {
+    console.warn(
+        "Cloudinary is using placeholder credentials in backend/.env. Course image uploads will fail until you set real values.",
+    );
+} else if (cloudinaryConfig.cloud_name && cloudinaryConfig.api_key && cloudinaryConfig.api_secret) {
+    try {
+        await cloudinary.api.ping();
+        console.log("Cloudinary credentials verified");
+    } catch (error) {
+        console.error(
+            "Cloudinary credentials are invalid:",
+            error?.message || error?.error?.message || error,
+        );
+        console.error(
+            "Use the exact Cloud name, API Key, and API Secret from the same Cloudinary account (Dashboard → Account Details).",
+        );
+    }
+}
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);

@@ -10,7 +10,7 @@ function UpdateCourse() {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [price, setPrice] = useState("");
-    const [image, setImage] = useState("");
+    const [imageFile, setImageFile] = useState(null);
     const [imagePreview, setImagePreview] = useState("");
     const [loading, setLoading] = useState(true);
 
@@ -25,7 +25,6 @@ function UpdateCourse() {
                 setTitle(data.course.title);
                 setDescription(data.course.description);
                 setPrice(data.course.price);
-                setImage(data.course.image.url);
                 setImagePreview(data.course.image.url);
                 setLoading(false);
             } catch (error) {
@@ -43,7 +42,7 @@ function UpdateCourse() {
         reader.readAsDataURL(file);
         reader.onload = () => {
             setImagePreview(reader.result);
-            setImage(file);
+            setImageFile(file);
         };
     };
     const handleUpdateCourse = async (e) => {
@@ -52,8 +51,8 @@ function UpdateCourse() {
         formData.append("title", title);
         formData.append("description", description);
         formData.append("price", price);
-        if (image) {
-            formData.append("imageUrl", image);
+        if (imageFile) {
+            formData.append("image", imageFile);
         }
         const admin = JSON.parse(localStorage.getItem("admin"));
         const token = admin.token;
@@ -72,7 +71,7 @@ function UpdateCourse() {
                     withCredentials: true,
                 }
             );
-            toast.success(response.data.message || "Course updated successfully22");
+            toast.success(response.data.message || "Course updated successfully");
             navigate("/admin/our-courses"); // Redirect to courses page after update
         } catch (error) {
             console.error(error);

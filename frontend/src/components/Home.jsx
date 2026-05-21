@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import logo from "../../public/logo.webp"
 import { Link } from 'react-router-dom'
 import { FaFacebook } from "react-icons/fa";
@@ -11,8 +11,38 @@ import Slider from "react-slick"
 import toast from "react-hot-toast"
 import { BACKEND_URL } from '../../utils/utils';
 
+const buildSliderSettings = (courseCount) => {
+    const settingsFor = (maxSlides) => {
+        const slidesToShow = Math.min(maxSlides, courseCount);
+        return {
+            slidesToShow,
+            slidesToScroll: 1,
+            infinite: courseCount > slidesToShow,
+            dots: courseCount > 1,
+            arrows: courseCount > slidesToShow,
+        };
+    };
+
+    const desktop = settingsFor(4);
+
+    return {
+        ...desktop,
+        speed: 400,
+        autoplay: courseCount > 1,
+        autoplaySpeed: 3500,
+        pauseOnHover: true,
+        cssEase: "ease-in-out",
+        responsive: [
+            { breakpoint: 1024, settings: settingsFor(3) },
+            { breakpoint: 640, settings: settingsFor(2) },
+            { breakpoint: 480, settings: settingsFor(1) },
+        ],
+    };
+};
+
 function Home() {
     const [courses, setCourses] = useState([])
+    const [coursesLoading, setCoursesLoading] = useState(true)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
 
     useEffect(() => {
@@ -46,46 +76,18 @@ function Home() {
                 setCourses(response.data.courses)
             } catch (error) {
                 console.log("error in fetching: ", error)
+                toast.error("Failed to load courses")
+            } finally {
+                setCoursesLoading(false)
             }
         }
         fetchCourse()
     }, [])
 
-    var settings = {
-        dots: true,
-        infinite: true,
-        speed: 300,
-        slidesToShow: 4,
-        slidesToScroll: 1,
-        initialSlide: 0,
-        autoplay: true,
-        responsive: [
-            {
-                breakpoint: 1024,
-                settings: {
-                    slidesToShow: 3,
-                    slidesToScroll: 2,
-                    infinite: true,
-                    dots: true
-                }
-            },
-            {
-                breakpoint: 600,
-                settings: {
-                    slidesToShow: 2,
-                    slidesToScroll: 2,
-                    initialSlide: 2
-                }
-            },
-            {
-                breakpoint: 480,
-                settings: {
-                    slidesToShow: 1,
-                    slidesToScroll: 1
-                }
-            }
-        ]
-    }
+    const sliderSettings = useMemo(
+        () => (courses.length > 0 ? buildSliderSettings(courses.length) : null),
+        [courses.length]
+    )
 
     return (
         <div className='bg-gradient-to-r from-white to-blue-400 min-h-screen flex flex-col'>
@@ -130,36 +132,46 @@ function Home() {
                     </div>
                 </section>
 
-                <section className="pt-4 pb-6">
-                    <Slider className="" {...settings}>
-                        {courses.map((course) => (
-                            <div key={course._id} className="p-4">
-                                <div className="relative w-full max-w-xs mx-auto transition-transform duration-300 transform hover:scale-105">
-                                    <div className="bg-gray-600 rounded-lg overflow-hidden">
-                                        <div className="flex justify-center items-center h-32 bg-white">
-                                            <img
-                                                className="h-24 object-contain"
-                                                src={course.image.url}
-                                                alt=""
-                                            />
-                                        </div>
-                                        <div className="p-4 text-center space-y-3">
-                                            <h2 className="text-md font-bold text-white break-words">
-                                                {course.title}
-                                            </h2>
-                                            <Link
-                                                to={`/buy/${course._id}`}
-                                                className="bg-orange-500 text-white py-1 px-3 text-sm rounded-full hover:bg-white hover:text-black duration-300 inline-block"
-                                            >
-                                                Enroll Now
-                                            </Link>
+                <section className="pt-4 pb-6 px-2">
+                    {coursesLoading ? (
+                        <p className="text-center text-gray-600 py-8">Loading courses...</p>
+                    ) : courses.length === 0 ? (
+                        <p className="text-center text-gray-600 py-8">No courses available yet.</p>
+                    ) : (
+                        <div className="course-slider max-w-6xl mx-auto">
+                            <Slider
+                                key={courses.map((c) => c._id).join("-")}
+                                {...sliderSettings}
+                            >
+                                {courses.map((course) => (
+                                    <div key={course._id} className="px-3 outline-none">
+                                        <div className="h-full transition-transform duration-300 transform hover:scale-[1.02]">
+                                            <div className="bg-gray-600 rounded-lg overflow-hidden h-full">
+                                                <div className="flex justify-center items-center h-32 bg-white">
+                                                    <img
+                                                        className="h-24 w-full object-contain"
+                                                        src={course.image?.url}
+                                                        alt={course.title}
+                                                    />
+                                                </div>
+                                                <div className="p-4 text-center space-y-3">
+                                                    <h2 className="text-md font-bold text-white break-words">
+                                                        {course.title}
+                                                    </h2>
+                                                    <Link
+                                                        to={`/buy/${course._id}`}
+                                                        className="bg-orange-500 text-white py-1 px-3 text-sm rounded-full hover:bg-white hover:text-black duration-300 inline-block"
+                                                    >
+                                                        Enroll Now
+                                                    </Link>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-
-                        ))}
-                    </Slider>
+                                ))}
+                            </Slider>
+                        </div>
+                    )}
                 </section>
 
                 <hr className="h-0.5 bg-gray-400  mx-25" />

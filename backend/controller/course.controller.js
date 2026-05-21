@@ -2,6 +2,44 @@ import { Course } from "../models/course.model.js";
 import { v2 as cloudinary } from "cloudinary";
 import { Purchase } from "../models/purchase.model.js";
 
+const allowedImageFormats = ["image/png", "image/jpeg"];
+
+const uploadCourseImage = async (file) => {
+  if (!allowedImageFormats.includes(file.mimetype)) {
+    return {
+      error: "Invalid file format. Only PNG and JPG are allowed",
+      status: 400,
+    };
+  }
+
+  try {
+    const cloud_response = await cloudinary.uploader.upload(file.tempFilePath);
+    if (!cloud_response || cloud_response.error) {
+      return { error: "Error uploading file to cloudinary", status: 400 };
+    }
+    return {
+      image: {
+        public_id: cloud_response.public_id,
+        url: cloud_response.url,
+      },
+    };
+  } catch (uploadError) {
+    console.log(uploadError);
+    const message =
+      uploadError?.message || "Error uploading file to cloudinary";
+    const isConfigError =
+      message.includes("Unknown API key") ||
+      message.includes("Invalid cloud_name") ||
+      message.includes("cloud_name mismatch");
+    return {
+      error: isConfigError
+        ? "Image upload is misconfigured. Set cloud_name, api_key, and api_secret in backend/.env, then restart the server."
+        : message,
+      status: isConfigError ? 503 : 400,
+    };
+  }
+};
+
 export const createCourse = async (req, res) => {
   const adminId = req.adminId;
   const { title, description, price } = req.body;
@@ -11,34 +49,25 @@ export const createCourse = async (req, res) => {
     if (!title || !description || !price) {
       return res.status(400).json({ errors: "All fields are required" });
     }
-    const { image } = req.files;
     if (!req.files || Object.keys(req.files).length === 0) {
       return res.status(400).json({ errors: "No file uploaded" });
     }
 
-    const allowedFormat = ["image/png", "image/jpeg"];
-    if (!allowedFormat.includes(image.mimetype)) {
-      return res
-        .status(400)
-        .json({ errors: "Invalid file format. Only PNG and JPG are allowed" });
+    const { image } = req.files;
+    if (!image) {
+      return res.status(400).json({ errors: "Course image is required" });
     }
 
-    // cloudinary code
-    const cloud_response = await cloudinary.uploader.upload(image.tempFilePath);
-    if (!cloud_response || cloud_response.error) {
-      return res
-        .status(400)
-        .json({ errors: "Error uploading file to cloudinary" });
+    const uploadResult = await uploadCourseImage(image);
+    if (uploadResult.error) {
+      return res.status(uploadResult.status).json({ errors: uploadResult.error });
     }
 
     const courseData = {
       title,
       description,
       price,
-      image: {
-        public_id: cloud_response?.public_id,
-        url: cloud_response?.url,
-      },
+      image: uploadResult.image,
       creatorId: adminId,
     };
     const course = await Course.create(courseData);
@@ -48,7 +77,9 @@ export const createCourse = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: "Error creating course" });
+    res.status(500).json({
+      errors: error.message || "Error creating course",
+    });
   }
 };
 
@@ -61,17 +92,37 @@ export const updateCourse = async (req, res) => {
     if (!courseSearch) {
       return res.status(404).json({ errors: "Course not found" });
     }
+
     const updateData = {
       title,
       description,
       price,
     };
+
+    const newImage = req.files?.image || req.files?.imageUrl;
+    if (newImage) {
+      const uploadResult = await uploadCourseImage(newImage);
+      if (uploadResult.error) {
+        return res
+          .status(uploadResult.status)
+          .json({ errors: uploadResult.error });
+      }
+      updateData.image = uploadResult.image;
+
+      if (courseSearch.image?.public_id) {
+        try {
+          await cloudinary.uploader.destroy(courseSearch.image.public_id);
+        } catch (destroyError) {
+          console.log("Failed to delete old course image", destroyError);
+        }
+      }
+    }
+
     const course = await Course.findOneAndUpdate(
       {
         _id: courseId,
         creatorId: adminId,
       },
-
       updateData,
       { new: true },
     );

@@ -1,1 +1,52 @@
 @import "tailwindcss";
+
+.course-slider .slick-slider {
+  width: 100%;
+}
+
+.course-slider .slick-list {
+  overflow: hidden;
+}
+
+.course-slider .slick-track {
+  display: flex;
+  align-items: stretch;
+}
+
+.course-slider .slick-slide {
+  height: auto;
+}
+
+.course-slider .slick-slide > div {
+  height: 100%;
+}
+
+.course-slider .slick-prev,
+.course-slider .slick-next {
+  z-index: 1;
+  width: 36px;
+  height: 36px;
+}
+
+.course-slider .slick-prev {
+  left: -8px;
+}
+
+.course-slider .slick-next {
+  right: -8px;
+}
+
+.course-slider .slick-prev:before,
+.course-slider .slick-next:before {
+  font-size: 28px;
+  color: #f97316;
+}
+
+.course-slider .slick-dots li button:before {
+  font-size: 10px;
+  color: #f97316;
+}
+
+.course-slider .slick-dots li.slick-active button:before {
+  color: #ea580c;
+}
