@@ -4,10 +4,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "node --test",
-    "start": "node index.js",
     "dev": "nodemon index.js",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "node --test",
+    "start": "node index.js"
   },
   "keywords": [],
   "author": "",
@@ -26,9 +26,9 @@
     "stripe": "^18.0.0",
     "zod": "^3.24.3"
   },
-"devDependencies": {
-  "@eslint/js": "^9.x.x",
-  "eslint": "^9.x.x",
-  "nodemon": "^3.1.10"
-}
+  "devDependencies": {
+    "@eslint/js": "^9.x.x",
+    "eslint": "^9.x.x",
+    "nodemon": "^3.1.10"
+  }
 }
