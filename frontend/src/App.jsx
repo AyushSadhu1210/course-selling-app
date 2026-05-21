@@ -13,6 +13,7 @@ import Dashboard from "./admin/Dashboard";
 import CourseCreate from "./admin/CourseCreate";
 import UpdateCourse from "./admin/UpdateCourse";
 import OurCourses from "./admin/OurCourses";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 function App() {
   const admin = JSON.parse(localStorage.getItem("admin"));
@@ -40,6 +41,7 @@ function App() {
         <Route path="/admin/our-courses" element={<OurCourses />} />
       </Routes>
       <Toaster />
+      <SpeedInsights />
     </div>
   );
 }
